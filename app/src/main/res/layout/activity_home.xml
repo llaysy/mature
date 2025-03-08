@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F9">
+
+    <!-- Верхняя панель -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_menu"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+        <ImageView
+            android:layout_width="27dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_sparkle_black"
+            android:visibility="gone"/>
+
+        <TextView
+            android:layout_width="129dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Главная"
+            android:textSize="38sp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"/>
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_cart"
+            android:background="@drawable/search_background"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/searchBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+    <!-- Поисковая строка -->
+    <LinearLayout
+        android:layout_width="269dp"
+        android:layout_height="52dp"
+        android:background="@drawable/search_background"
+        android:gravity="center_vertical"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="26dp"
+            android:src="@drawable/ic_search"/>
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Поиск"
+            android:layout_marginStart="12dp"
+            android:textSize="16sp"/>
+    </LinearLayout>
+
+    <ImageButton
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="14dp"
+
+        android:src="@drawable/ic_filter"
+        app:iconTint="@android:color/white"
+        android:background="@drawable/button_background_blue"
+        android:elevation="4dp" />
+
+</LinearLayout>
+
+    <TextView
+        android:id="@+id/categoriesTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Категории"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/searchBar"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <HorizontalScrollView
+        android:id="@+id/categoriesScroll"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/categoriesTitle">
+
+        <com.google.android.material.chip.ChipGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="108dp"
+                android:layout_height="40dp"
+                android:text="Все"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@android:color/black"
+                app:chipBackgroundColor="@android:color/white"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.CustomChip"
+                android:elevation="4dp"
+                app:strokeColor="@android:color/transparent"
+                app:chipStrokeWidth="0dp" />
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="108dp"
+                android:layout_height="40dp"
+            android:text="Outdoor"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:textColor="@android:color/black"
+            app:chipBackgroundColor="@android:color/white"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.CustomChip"
+            android:elevation="4dp"
+            app:strokeColor="@android:color/transparent"
+            app:chipStrokeWidth="0dp" />
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="108dp"
+                android:layout_height="40dp"
+            android:text="Tennis"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:textColor="@android:color/black"
+            app:chipBackgroundColor="@android:color/white"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.CustomChip"
+            android:elevation="4dp"
+            app:strokeColor="@android:color/transparent"
+            app:chipStrokeWidth="0dp" />
+
+            <com.google.android.material.chip.Chip
+                android:layout_width="108dp"
+                android:layout_height="40dp"
+                android:text="Running"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@android:color/black"
+                app:chipBackgroundColor="@android:color/white"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.CustomChip"
+                android:elevation="4dp"
+                app:strokeColor="@android:color/transparent"
+                app:chipStrokeWidth="0dp" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- Популярное -->
+    <LinearLayout
+        android:id="@+id/popularSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="11.5dp"
+        app:layout_constraintTop_toBottomOf="@id/categoriesScroll">
+
+        <TextView
+            android:layout_width="96dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            android:text="Популярное"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Все"
+            android:layout_marginEnd="28dp"
+            android:textColor="#4CB4E7"/>
+    </LinearLayout>
+
+    <!-- Сетка товаров -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/productsGrid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/popularSection"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"/>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@drawable/nav_vector"
+        android:elevation="8dp"
+        app:itemIconTint="@color/selector_color"
+        app:itemTextColor="@color/selector_color"
+        app:menu="@menu/bottom_nav_menu" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

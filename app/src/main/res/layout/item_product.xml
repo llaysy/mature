@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="160dp"
+    android:layout_height="184dp"
+    android:layout_margin="8dp"
+    android:background="#FFFFFF"
+    app:cardCornerRadius="16dp">
+
+    <LinearLayout
+        android:layout_width="160dp"
+        android:layout_height="184dp"
+        android:background="#FFFFFF"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/likeButton"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginStart="9dp"
+            android:background="@drawable/rounded_button_background"
+            android:src="@drawable/icon_heart" />
+
+        <FrameLayout
+            android:layout_width="114.98dp"
+            android:layout_height="53.85dp"
+            android:layout_marginStart="21dp"
+            android:layout_marginTop="9dp">
+
+            <ImageView
+                android:layout_width="114.98dp"
+                android:layout_height="53.85dp"
+                android:scaleType="centerCrop"
+                android:scaleX="-1"
+                android:src="@drawable/nike1" />
+
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="70dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="12.6dp"
+            android:layout_marginStart="9dp"
+            android:text="BEST SELLER"
+            android:textColor="#48B2E7"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="93dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="9dp"
+            android:text="Nike Air Max"
+            android:textColor="#6A6A6A"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="9dp"
+                android:layout_marginTop="10dp"
+                android:text="₽752.00"
+                android:textSize="14sp"
+                android:lineSpacingExtra="-5sp"
+                android:gravity="top"
+                android:textStyle="bold"
+                android:layout_weight="1" /> <!-- Используем вес для растяжения -->
+
+            <FrameLayout
+                android:id="@+id/add"
+                android:layout_width="wrap_content"
+                android:layout_height="35.5dp"
+                android:layout_gravity="end">
+
+                <ImageButton
+                    android:layout_width="34dp"
+                    android:layout_height="35.5dp"
+                    android:background="@drawable/rounded_button_background"
+                    android:src="@drawable/ic_add"
+                    android:scaleType="centerInside"/>
+
+                <TextView
+                    android:layout_width="21dp"
+                    android:layout_height="20dp"
+                    android:text="+"
+                    android:gravity="center"
+                    android:layout_marginStart="7dp"
+                    android:layout_marginTop="5dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp" />
+
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
