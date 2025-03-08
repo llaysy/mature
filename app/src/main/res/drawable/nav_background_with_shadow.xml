@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Внешняя тень -->
+    <item>
+        <shape>
+            <solid android:color="#10000000"/>
+            <corners android:topLeftRadius="30dp" android:topRightRadius="30dp"/>
+        </shape>
+    </item>
+    <!-- Средняя тень -->
+    <item android:top="2dp">
+        <shape>
+            <solid android:color="#08000000"/>
+            <corners android:topLeftRadius="30dp" android:topRightRadius="30dp"/>
+        </shape>
+    </item>
+    <!-- Основной фон с волной -->
+    <item android:top="3dp">
+        <vector
+            android:width="375dp"
+            android:height="117dp"
+            android:viewportWidth="375"
+            android:viewportHeight="117">
+            <path
+                android:fillColor="@android:color/white"
+                android:pathData="M121.662,31.5 C66.789,32.7 17.6903,18.3333 0,11 L0,117 L375,117 L375,11 C347.964,30.5 276.869,31 255.34,31 C233.812,31 229.806,34 229.806,42.5 C229.806,51 234.385,74.1784 207.777,77.5 C155.708,84 145.54,66.5 144.693,55.5 C143.692,42.5 146.195,31.5 121.662,31.5 Z" />
+        </vector>
+    </item>
+</layer-list>
