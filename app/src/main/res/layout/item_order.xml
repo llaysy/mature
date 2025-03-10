@@ -57,8 +57,7 @@
                     android:layout_height="wrap_content"
                     android:text="$364.95"
                     android:textColor="#808080"
-                    android:textSize="14sp"
-                    android:textDecoration="line-through"/>
+                    android:textSize="14sp"/>
 
                 <TextView
                     android:id="@+id/discountPrice"

@@ -2,14 +2,14 @@
     <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">@android:color/black</item>
-        <item name="android:letterSpacing">0.08em</item>
+        <item name="android:letterSpacing">0.08</item> <!-- Исправлено -->
         <item name="android:gravity">center</item>
         <item name="android:elevation">4dp</item>
-        <item name="app:chipBackgroundColor">@android:color/white</item>
+        <item name="chipBackgroundColor">@android:color/white</item>
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.CustomChip</item>
     </style>
 
-    <style name="ShapeAppearance.CustomChip">
+    <style name="ShapeAppearance.CustomChip" parent="ShapeAppearance.MaterialComponents"> <!-- Добавлен родительский стиль -->
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>

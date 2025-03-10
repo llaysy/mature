@@ -11,6 +11,12 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+# Ktor
+-keep class io.ktor.** { *; }
+-keep class kotlinx.serialization.** { *; }
+
+# Supabase
+-keep class io.github.jan.supabase.** { *; }
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.

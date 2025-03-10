@@ -40,18 +40,15 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        // Кнопка избранного
-        findViewById<MaterialButton>(R.id.favoriteButton).setOnClickListener {
-            isFavorite = !isFavorite
-            it.setIconTintResource(
-                if (isFavorite) R.color.red
-                else R.color.black
-            )
+        findViewById<MaterialButton>(R.id.favoriteButton).apply {
+            setOnClickListener {
+                isFavorite = !isFavorite
+                setIconTintResource(if (isFavorite) R.color.red else R.color.black)
+                setIconResource(if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border)
+            }
         }
 
-        // Кнопка корзины
         findViewById<MaterialButton>(R.id.addToCartButton).setOnClickListener {
-            // Добавление в корзину
             Toast.makeText(this, "Добавлено в корзину", Toast.LENGTH_SHORT).show()
         }
     }

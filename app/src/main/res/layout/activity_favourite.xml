@@ -75,7 +75,6 @@
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNav"
-            style="@style/CustomBottomNavigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/nav_vector"
@@ -92,7 +91,6 @@
             app:elevation="12dp"
             app:fabCustomSize="56dp"
             app:maxImageSize="24dp"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.FAB.Circle"
             app:tint="@android:color/white" />
 
     </FrameLayout>
