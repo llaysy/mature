@@ -1,0 +1,430 @@
+Хорошо, давайте создадим полное приложение, которое включает в себя функционал добавления товаров в избранное и в корзину с использованием Kotlin и Android. Мы организуем код в несколько частей: модели данных, адаптеры, активности и логику обработки событий.
+
+### 1. Модель данных
+
+Создайте файл `Product.kt` для модели продукта:
+
+```kotlin
+data class Product(
+    val id: String,
+    val name: String,
+    val price: String,
+    val imageResId: Int,
+    var isFavorite: Boolean
+)
+```
+
+Создайте файл `CartItem.kt` для модели элемента корзины:
+
+```kotlin
+data class CartItem(
+    val product: Product,
+    var quantity: Int = 1
+)
+```
+
+### 2. Логика корзины
+
+Создайте файл `Cart.kt` для управления корзиной:
+
+```kotlin
+class Cart {
+    private val items: MutableList<CartItem> = mutableListOf()
+
+    fun addItem(product: Product) {
+        val existingItem = items.find { it.product.id == product.id }
+        if (existingItem != null) {
+            existingItem.quantity++
+        } else {
+            items.add(CartItem(product))
+        }
+    }
+
+    fun getItems() = items
+}
+```
+
+### 3. Адаптер для `RecyclerView`
+
+Создайте файл `ProductsAdapter.kt` для адаптера:
+
+```kotlin
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+
+class ProductsAdapter(
+    private val context: Context,
+    private val products: List<Product>,
+    private val onFavoriteClick: (Product) -> Unit,
+    private val onAddToCartClick: (Product) -> Unit
+) : RecyclerView.Adapter<ProductsAdapter.ProductViewHolder>() {
+
+    inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val likeButton: ImageButton = itemView.findViewById(R.id.likeButton)
+        private val productImage: ImageView = itemView.findViewById(R.id.productImage)
+        private val productName: TextView = itemView.findViewById(R.id.productName)
+        private val productPrice: TextView = itemView.findViewById(R.id.productPrice)
+        private val addButton: ImageButton = itemView.findViewById(R.id.add)
+
+        fun bind(product: Product) {
+            productImage.setImageResource(product.imageResId)
+            productName.text = product.name
+            productPrice.text = product.price
+            
+            likeButton.setImageResource(
+                if (product.isFavorite) R.drawable.icon_heart_filled else R.drawable.icon_heart
+            )
+
+            likeButton.setOnClickListener { 
+                product.isFavorite = !product.isFavorite
+                onFavoriteClick(product)
+                notifyItemChanged(adapterPosition)
+            }
+
+            addButton.setOnClickListener { onAddToCartClick(product) }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.item_product, parent, false)
+        return ProductViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
+        holder.bind(products[position])
+    }
+
+    override fun getItemCount() = products.size
+}
+```
+
+### 4. XML макет карточки товара
+
+Создайте файл `item_product.xml` для макета карточки товара:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="160dp"
+    android:layout_height="184dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/likeButton"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginStart="9dp"
+            android:background="@drawable/rounded_button_background"
+            android:src="@drawable/icon_heart" />
+
+        <ImageView
+            android:id="@+id/productImage"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/nike1" />
+
+        <TextView
+            android:id="@+id/productName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nike Air Max"
+            android:textColor="#6A6A6A"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/productPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="₽752.00"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+```
+
+### 5. Активность для отображения избранного
+
+Создайте `FavouriteActivity.kt`:
+
+```kotlin
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class FavouriteActivity : AppCompatActivity() {
+
+    private lateinit var productsRecyclerView: RecyclerView
+    private lateinit var productsAdapter: ProductsAdapter
+    private val productsList = mutableListOf<Product>()
+    private val cart = Cart()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_favourite)
+
+        // Инициализация RecyclerView
+        productsRecyclerView = findViewById(R.id.productsGrid)
+        productsRecyclerView.layoutManager = GridLayoutManager(this, 2) // 2 колонки
+
+        // Заполнение списка товаров
+        productsList.add(Product("1", "Nike Air Max", "₽752.00", R.drawable.nike1, false))
+        productsList.add(Product("2", "Adidas Ultra Boost", "₽850.00", R.drawable.adidas_ultra_boost, false))
+
+        productsAdapter = ProductsAdapter(this, productsList,
+            onFavoriteClick = { product -> 
+                // Обработка добавления в избранное
+            },
+            onAddToCartClick = { product -> 
+                cart.addItem(product)
+                // Обновите UI или покажите сообщение о добавлении товара в корзину
+            }
+        )
+
+        productsRecyclerView.adapter = productsAdapter
+    }
+}
+```
+
+### 6. Макет для `FavouriteActivity`
+
+Создайте файл `activity_favourite.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F9">
+
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_back"
+            android:background="@drawable/rounded_button_background" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Избранное"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/productsGrid"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+### 7. Активность для корзины
+
+Создайте `CartActivity.kt`:
+
+```kotlin
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class CartActivity : AppCompatActivity() {
+
+    private lateinit var cartRecyclerView: RecyclerView
+    private lateinit var cartAdapter: CartAdapter
+    private val cart = Cart()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_cart)
+
+        cartRecyclerView = findViewById(R.id.cartList)
+        cartRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        cartAdapter = CartAdapter(this, cart.getItems())
+        cartRecyclerView.adapter = cartAdapter
+    }
+}
+```
+
+### 8. Адаптер для корзины
+
+Создайте файл `CartAdapter.kt`:
+
+```kotlin
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+
+class CartAdapter(
+    private val context: Context,
+    private val items: List<CartItem>
+) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
+
+    inner class CartViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val productName: TextView = itemView.findViewById(R.id.productName)
+        private val productQuantity: TextView = itemView.findViewById(R.id.productQuantity)
+
+        fun bind(cartItem: CartItem) {
+            productName.text = cartItem.product.name
+            productQuantity.text = "${cartItem.quantity} шт."
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.item_cart, parent, false)
+        return CartViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: CartViewHolder, position: Int) {
+        holder.bind(items[position])
+    }
+
+    override fun getItemCount() = items.size
+}
+```
+
+### 9. Макет для `CartActivity`
+
+Создайте файл `activity_cart.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F9">
+
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_back"
+            android:background="@drawable/rounded_button_background" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Корзина"
+            android:textSize="20sp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/cartList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/topBar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+### 10. Макет для элемента корзины
+
+Создайте файл `item_cart.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/productName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Product Name" />
+
+    <TextView
+        android:id="@+id/productQuantity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1 шт." />
+</LinearLayout>
+```
+
+### 11. Настройка `AndroidManifest.xml`
+
+Не забудьте добавить ваши активности в файл `AndroidManifest.xml`:
+
+```xml
+<activity android:name=".FavouriteActivity" />
+<activity android:name=".CartActivity" />
+```
+
+### 12. Ресурсы
+
+Убедитесь, что у вас есть все необходимые изображения в папке `res/drawable`, такие как `icon_heart`, `icon_heart_filled`, `ic_add`, и т. д.
+
+### Заключение
+
+Теперь у вас есть простое приложение, которое позволяет добавлять товары в избранное и в корзину. Вы можете расширить его, добавив больше функций, таких как сохранение состояния, удаление товаров из корзины и оформление заказа.
