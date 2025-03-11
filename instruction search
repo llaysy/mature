@@ -1,0 +1,283 @@
+Давайте реализуем функционал истории поиска в вашем приложении. Мы будем использовать `SharedPreferences` для хранения истории поиска, а также `RecyclerView` для отображения результатов поиска. При нажатии на элемент истории будет осуществляться поиск товаров из локального хранилища.
+
+### 1. Модель данных для товаров
+
+Убедитесь, что у вас есть модель данных для товаров, как показано ранее:
+
+```kotlin
+data class Product(
+    val id: String,
+    val name: String,
+    val price: String,
+    val imageResId: Int,
+    var isFavorite: Boolean
+)
+```
+
+### 2. Логика истории поиска
+
+Создайте класс для управления историей поиска:
+
+```kotlin
+import android.content.Context
+import android.content.SharedPreferences
+
+class SearchHistory(private val context: Context) {
+    private val prefs: SharedPreferences = context.getSharedPreferences("search_history", Context.MODE_PRIVATE)
+
+    fun addQuery(query: String) {
+        val history = getHistory().toMutableList()
+        if (!history.contains(query)) {
+            history.add(query)
+            prefs.edit().putStringSet("history", history.toSet()).apply()
+        }
+    }
+
+    fun getHistory(): Set<String> {
+        return prefs.getStringSet("history", emptySet()) ?: emptySet()
+    }
+
+    fun clearHistory() {
+        prefs.edit().remove("history").apply()
+    }
+}
+```
+
+### 3. Адаптер для истории поиска
+
+Создайте файл `SearchHistoryAdapter.kt`:
+
+```kotlin
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+
+class SearchHistoryAdapter(
+    private val context: Context,
+    private val history: List<String>,
+    private val onItemClick: (String) -> Unit
+) : RecyclerView.Adapter<SearchHistoryAdapter.HistoryViewHolder>() {
+
+    inner class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val queryText: TextView = itemView.findViewById(R.id.queryText)
+
+        fun bind(query: String) {
+            queryText.text = query
+            itemView.setOnClickListener { onItemClick(query) }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.item_search_history, parent, false)
+        return HistoryViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
+        holder.bind(history[position])
+    }
+
+    override fun getItemCount() = history.size
+}
+```
+
+### 4. Макет для элемента истории поиска
+
+Создайте файл `item_search_history.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/queryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search Query"
+        android:textSize="16sp" />
+</LinearLayout>
+```
+
+### 5. Реализация `HomeActivity`
+
+Теперь создайте `HomeActivity.kt`, в котором будет реализован поиск:
+
+```kotlin
+import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import android.widget.EditText
+
+class HomeActivity : AppCompatActivity() {
+    private lateinit var searchEditText: EditText
+    private lateinit var searchHistoryRecyclerView: RecyclerView
+    private lateinit var searchHistoryAdapter: SearchHistoryAdapter
+    private lateinit var searchHistory: SearchHistory
+    private val productsList = mutableListOf<Product>() // Список всех продуктов
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_home)
+
+        searchEditText = findViewById(R.id.searchEditText)
+        searchHistoryRecyclerView = findViewById(R.id.searchHistoryRecyclerView)
+
+        searchHistory = SearchHistory(this)
+
+        searchHistoryAdapter = SearchHistoryAdapter(this, searchHistory.getHistory().toList()) { query ->
+            searchEditText.setText(query)
+            performSearch(query)
+        }
+
+        searchHistoryRecyclerView.layoutManager = LinearLayoutManager(this)
+        searchHistoryRecyclerView.adapter = searchHistoryAdapter
+
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val query = s.toString()
+                if (query.isNotEmpty()) {
+                    searchHistory.addQuery(query)
+                }
+                updateSearchHistory()
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        // Наполните productsList вашими данными из локального хранилища
+    }
+
+    private fun performSearch(query: String) {
+        val filteredProducts = productsList.filter { 
+            it.name.contains(query, ignoreCase = true) 
+        }
+        // Обновите UI для отображения отфильтрованных продуктов
+    }
+
+    private fun updateSearchHistory() {
+        searchHistoryAdapter = SearchHistoryAdapter(this, searchHistory.getHistory().toList()) { query ->
+            searchEditText.setText(query)
+            performSearch(query)
+        }
+        searchHistoryRecyclerView.adapter = searchHistoryAdapter
+    }
+}
+```
+
+### 6. Макет для `HomeActivity`
+
+Создайте файл `activity_home.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F9">
+
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_menu"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Главная"
+            android:textSize="38sp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"/>
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_cart"
+            android:background="@drawable/search_background"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/searchBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/search_background"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search"/>
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="Поиск"
+                android:textSize="16sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/historyTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="История поиска"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/searchBar"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/searchHistoryRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/historyTitle"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+### 7. Настройка `AndroidManifest.xml`
+
+Не забудьте добавить вашу новую активность в файл `AndroidManifest.xml`:
+
+```xml
+<activity android:name=".HomeActivity" />
+```
+
+### Заключение
+
+Теперь у вас есть функционал истории поиска, который позволяет сохранять и отображать предыдущие запросы. При нажатии на элемент истории осуществляется поиск по локальному хранилищу товаров, и результаты отображаются в интерфейсе. Вы можете расширить эту функциональность, добавив возможность очистки истории или применения фильтров.
