@@ -1,0 +1,253 @@
+Для реализации функционала свайпа карточки товара вправо с появлением кнопок увеличения/уменьшения количества товара в корзине и кнопки удаления, мы будем использовать `ItemTouchHelper`. Этот класс позволяет обрабатывать свайпы в `RecyclerView`. 
+
+Давайте создадим все необходимые компоненты, чтобы реализовать этот функционал.
+
+### 1. Модель данных товара в корзине
+
+Убедитесь, что у вас есть модель данных для элемента корзины:
+
+```kotlin
+data class CartItem(
+    val product: Product,
+    var quantity: Int = 1
+)
+```
+
+### 2. Реализация адаптера для корзины
+
+Создайте или обновите файл `CartAdapter.kt`:
+
+```kotlin
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.mature.R
+
+class CartAdapter(
+    private val context: Context,
+    private val items: MutableList<CartItem>,
+    private val onDelete: (CartItem) -> Unit,
+    private val onIncrease: (CartItem) -> Unit,
+    private val onDecrease: (CartItem) -> Unit
+) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
+
+    inner class CartViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val productName: TextView = itemView.findViewById(R.id.productName)
+        private val productPrice: TextView = itemView.findViewById(R.id.productPrice)
+        private val quantityText: TextView = itemView.findViewById(R.id.quantity)
+        private val increaseButton: ImageButton = itemView.findViewById(R.id.increaseButton)
+        private val decreaseButton: ImageButton = itemView.findViewById(R.id.decreaseButton)
+        private val deleteButton: ImageButton = itemView.findViewById(R.id.deleteButton)
+
+        fun bind(cartItem: CartItem) {
+            productName.text = cartItem.product.name
+            productPrice.text = cartItem.product.price
+            quantityText.text = cartItem.quantity.toString()
+
+            increaseButton.setOnClickListener {
+                onIncrease(cartItem)
+                notifyItemChanged(adapterPosition)
+            }
+
+            decreaseButton.setOnClickListener {
+                if (cartItem.quantity > 1) {
+                    onDecrease(cartItem)
+                    notifyItemChanged(adapterPosition)
+                }
+            }
+
+            deleteButton.setOnClickListener {
+                onDelete(cartItem)
+            }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.item_cart, parent, false)
+        return CartViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: CartViewHolder, position: Int) {
+        holder.bind(items[position])
+    }
+
+    override fun getItemCount() = items.size
+}
+```
+
+### 3. Реализация `CardActivity`
+
+Теперь создайте или обновите `CardActivity.kt`:
+
+```kotlin
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.ItemTouchHelper
+import android.widget.TextView
+
+class CardActivity : AppCompatActivity() {
+
+    private lateinit var cartRecyclerView: RecyclerView
+    private lateinit var cartAdapter: CartAdapter
+    private lateinit var cartCountText: TextView
+    private val cartItems = mutableListOf<CartItem>()
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_cart)
+
+        cartRecyclerView = findViewById(R.id.cartList)
+        cartCountText = findViewById(R.id.cartCount)
+
+        cartAdapter = CartAdapter(this, cartItems,
+            onDelete = { item ->
+                cartItems.remove(item)
+                cartAdapter.notifyDataSetChanged()
+                updateCartCount()
+            },
+            onIncrease = { item ->
+                item.quantity++
+                updateCartCount()
+            },
+            onDecrease = { item ->
+                item.quantity--
+                updateCartCount()
+            }
+        )
+
+        cartRecyclerView.layoutManager = LinearLayoutManager(this)
+        cartRecyclerView.adapter = cartAdapter
+
+        // Включение свайпа для удаления товара
+        val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val item = cartItems[position]
+                cartItems.removeAt(position)
+                cartAdapter.notifyItemRemoved(position)
+                updateCartCount()
+            }
+        })
+
+        itemTouchHelper.attachToRecyclerView(cartRecyclerView)
+    }
+
+    private fun updateCartCount() {
+        val totalItems = cartItems.sumOf { it.quantity }
+        cartCountText.text = if (totalItems == 0) "Корзина пуста" else "Товар(ы): $totalItems"
+    }
+}
+```
+
+### 4. Макет для элемента корзины
+
+Убедитесь, что у вас есть правильный макет для элемента корзины, например, в `item_cart.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/productCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:cardCornerRadius="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/productImage"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/product_image" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:id="@+id/productName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Product Name"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/productPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₽0"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/increaseButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_plus" />
+
+                <TextView
+                    android:id="@+id/quantity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1" />
+
+                <ImageButton
+                    android:id="@+id/decreaseButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_minus" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/deleteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_delete" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+### 5. Добавьте зависимости
+
+Убедитесь, что у вас есть все необходимые зависимости в вашем `build.gradle`:
+
+```gradle
+implementation "androidx.recyclerview:recyclerview:1.2.1"
+implementation "androidx.cardview:cardview:1.0.0"
+```
+
+### Заключение
+
+Теперь у вас есть полная реализация функционала, позволяющая пользователю свайпать карточки товаров, чтобы показать кнопки увеличения/уменьшения количества и удаления товара. Это помогает улучшить взаимодействие с пользователем и делает интерфейс более удобным. Вы можете дополнительно настроить анимации и стили для улучшения пользовательского опыта.
